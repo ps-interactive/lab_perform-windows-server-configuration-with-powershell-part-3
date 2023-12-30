@@ -89,8 +89,8 @@ Get-Partition -DiskNumber 1
 
 $resizePartitionNumber = 3  # Change this to the partition number you want to resize
 $resizeSize = 1500MB  # Change this to the new size
-
 Resize-Partition -DiskNumber $diskNumber -PartitionNumber $resizePartitionNumber -Size $resizeSize
+
 Get-Partition -DiskNumber 1
 
 # 2.6 - Change drive letter
@@ -110,69 +110,16 @@ foreach($Key in $Hash.keys)
 
 #########################################################################################################
 
-# 3 - Manage Firewall
+# 3 - Manage Event Logs
 
-# 3.1 - Create, retrieve, disable, enable, modify, rename, and remove Windows Firewall rule
-$ruleName = "MyFirewallRule"
-
-# 3.1.A - Create a new firewall rule
-New-NetFirewallRule -DisplayName $ruleName -Direction Inbound -Action Allow -Protocol TCP -LocalPort 80
-
-#  3.1.B - Retrieve and display firewall rule details
-$firewallRule = Get-NetFirewallRule -DisplayName $ruleName
-$firewallRule
-
-#  3.1.C - Disable the firewall rule
-Disable-NetFirewallRule -DisplayName $ruleName
-
-#  3.1.D - Enable the firewall rule
-Enable-NetFirewallRule -DisplayName $ruleName
-
-#  3.1.E - Modify the firewall rule (changing local and remote IP addresses)
-$IP = (Get-NetIPAddress | Where-Object{($_.InterfaceAlias -eq "Ethernet 3") -and ($_.AddressFamily -eq "IPv4")}).IPAddress
-Set-NetFirewallRule -DisplayName $ruleName -LocalPort 8080 -LocalAddress $IP -RemoteAddress "8.8.8.8","4.4.4.4","3.3.3.3"
-
-#  3.1.F - Rename the firewall rule
-Rename-NetFirewallRule -DisplayName $ruleName -NewDisplayName "RenamedFirewallRule"
-
-#  3.1.G - Remove the firewall rule
-Remove-NetFirewallRule -DisplayName "RenamedFirewallRule"
-
-
-
-# 3.2 - Allow ping ICMP traffic
-Enable-NetFirewallRule -DisplayName "File and Printer Sharing (Echo Request - ICMPv4-In)"
-
-
-
-# 3.3 - Change firewall profile status
-# 3.3.A - Disable the Domain profile (you can replace 'Domain' with 'Public' or 'Private' if needed)
-Set-NetFirewallProfile -Profile Domain -Enabled False
-Get-NetFirewallProfile | select name, enabled
-
-# 3.3.B - Enable the Domain profile
-Set-NetFirewallProfile -Profile Domain -Enabled True
-
-
-
-# 3.4 - Create IPSec rule (Note: IPSec rules are more complex and require detailed configuration)
-New-NetIPsecRule -DisplayName "IPSecRule" -Description "Custom IPSec Rule" -PolicyStore ActiveStore -InboundSecurityRuleName "Allow Inbound IPSec" -OutboundSecurityRuleName "Allow Outbound IPSec" -EncryptionType ESP -EncryptionAlgorithm AES -InboundPfsGroup None -OutboundPfsGroup None
-
-
-
-#########################################################################################################
-
-
-# 4 - Manage Event Logs
-
-# 4.1 - Retrieve event logs
+# 3.1 - Retrieve event logs
 $allEventLogs = Get-EventLog -List
 
 foreach ($log in $allEventLogs) {
     Write-Host $log.Log
 }
 
-# 4.2 - Retrieve specific event log
+# 3.2 - Retrieve specific event log
 $specificLogName = "System"  # Change this to the desired log name
 $specificEventLog = Get-EventLog -LogName $specificLogName -Newest 10
 
@@ -180,7 +127,7 @@ foreach ($event in $specificEventLog) {
     Write-Host "Event ID: $($event.EventID), Time: $($event.TimeGenerated), Message: $($event.Message)"
 }
 
-# 4.3 - Create event log
+# 3.3 - Create event log
 $newEventLogName = "CustomEventLog"  # Change this to the desired log name
 $newEventLogSource = "MyScript"      # Change this to the desired source name
 
@@ -192,8 +139,59 @@ if (-not (Get-EventLog -LogName $newEventLogName -ErrorAction SilentlyContinue))
     Write-Host "Event Log '$newEventLogName' already exists."
 }
 
-# 4.4 - Write an event to the newly created event log
+Get-EventLog -List
+
+# 3.4 - Write an event to the newly created event log
 Write-EventLog -LogName $newEventLogName -Source $newEventLogSource -EntryType Information -EventId 100 -Message "Custom event logged."
+
+
+
+#########################################################################################################
+
+
+# 4 - Manage Firewall
+
+# 4.1 - Create, retrieve, disable, enable, modify, rename, and remove Windows Firewall rule
+$ruleName = "MyFirewallRule"
+
+# 4.1.A - Create a new firewall rule
+New-NetFirewallRule -DisplayName $ruleName -Direction Inbound -Action Allow -Protocol TCP -LocalPort 80
+
+# 4.1.B - Retrieve and display firewall rule details
+$firewallRule = Get-NetFirewallRule -DisplayName $ruleName
+$firewallRule
+
+# 4.1.C - Disable the firewall rule
+Disable-NetFirewallRule -DisplayName $ruleName
+
+# 4.1.D - Enable the firewall rule
+Enable-NetFirewallRule -DisplayName $ruleName
+
+# 4.1.E - Modify the firewall rule (changing local and remote IP addresses)
+$IP = (Get-NetIPAddress | Where-Object{($_.InterfaceAlias -eq "Ethernet 3") -and ($_.AddressFamily -eq "IPv4")}).IPAddress
+Set-NetFirewallRule -DisplayName $ruleName -LocalPort 8080 -LocalAddress $IP -RemoteAddress "8.8.8.8","4.4.4.4","3.3.3.3"
+
+# 4.1.F - Rename the firewall rule
+Rename-NetFirewallRule -DisplayName $ruleName -NewName "RenamedFirewallRule"
+Set-NetFirewallrule -DisplayName $ruleName -NewDisplayName "RenamedFirewallRule"
+
+# 4.1.G - Remove the firewall rule
+Remove-NetFirewallRule -DisplayName "RenamedFirewallRule"
+
+
+
+# 4.2 - Allow ping ICMP traffic
+Enable-NetFirewallRule -DisplayName "File and Printer Sharing (Echo Request - ICMPv4-In)"
+
+
+
+# 4.3 - Change firewall profile status
+# 4.3.A - Disable the Domain profile (you can replace 'Domain' with 'Public' or 'Private' if needed)
+Set-NetFirewallProfile -Profile Domain -Enabled False
+Get-NetFirewallProfile | select name, enabled
+
+# 4.3.B - Enable the Domain profile
+Set-NetFirewallProfile -Profile Domain -Enabled True
 
 
 
