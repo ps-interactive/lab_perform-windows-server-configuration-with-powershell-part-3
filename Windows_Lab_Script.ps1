@@ -199,36 +199,24 @@ Set-NetFirewallProfile -Profile Domain -Enabled True
 
 # 5 - Manage PS Remoting
 
-# 5.1 - Set PS remoting
-Enable-PSRemoting -Force
+# 5.1.A - Manage trusted host
+Enter-PSSession -ComputerName 172.31.24.21
 
-
-
-# 5.2 - Verify all the changes that Enable-PSRemoting cmdlet has made
-Write-Host "Verifying PS Remoting Configuration:"
-Get-Item WSMan:\localhost\Shell\* | Format-Table
-
-
-
-# 5.3.A - Manage trusted host
-$remoteComputer = "RemoteComputer"  # Change this to the hostname or IP address of your remote machine
-
-# 5.3.B - Add the remote computer to the trusted hosts list
+# 5.1.B - Add the remote computer to the trusted hosts list
+Get-Item WSMan:\localhost\Client\TrustedHosts
+$remoteComputer = "172.31.24.21"
 Set-Item WSMan:\localhost\Client\TrustedHosts -Value $remoteComputer -Force
 
-# 5.3.C - Display the updated trusted hosts list
-Write-Host "Trusted Hosts List:"
+# 5.1.C - Display the updated trusted hosts list
 Get-Item WSMan:\localhost\Client\TrustedHosts
 
 
 
-# 5.4 - Access remote machine using PS remoting
-$remoteSession = New-PSSession -ComputerName $remoteComputer -Credential (Get-Credential)
+# 5.2 - Access remote machine using PS remoting
+$remoteSession = New-PSSession -ComputerName $remoteComputer
 Invoke-Command -Session $remoteSession -ScriptBlock {
-    # Your remote commands go here
     $env:COMPUTERNAME
 }
 
-# 5.5 - Close the remote session
+# 5.3 - Close the remote session
 Remove-PSSession $remoteSession
-Write-Host "Remote session closed."
